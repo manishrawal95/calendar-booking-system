@@ -1,4 +1,4 @@
-# Next.js Booking System
+# Calendar Booking System
 
 Production booking system with Google Calendar integration, email confirmations, and timezone-aware scheduling. Built with Next.js 14 App Router.
 
