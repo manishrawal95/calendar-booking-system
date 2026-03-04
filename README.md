@@ -44,7 +44,7 @@ User → /book/manage?token=... → GET /api/calendar/manage (verify HMAC token)
 
 - [Next.js 14](https://nextjs.org/) (App Router)
 - TypeScript
-- [Google Calendar API](https://developers.google.com/calendar) (googleapis)
+- [Google Calendar API](https://developers.google.com/calendar) (@googleapis/calendar + google-auth-library)
 - [Resend](https://resend.com/) (transactional email)
 - [Luxon](https://moment.github.io/luxon/) (timezone-aware date handling)
 - [Vitest](https://vitest.dev/) (testing)
@@ -55,12 +55,14 @@ User → /book/manage?token=... → GET /api/calendar/manage (verify HMAC token)
 src/
 ├── lib/
 │   ├── google-calendar.ts    # Calendar slot generation, availability, event CRUD
+│   ├── google-auth.ts        # Google OAuth + service account auth
 │   ├── booking-email.ts      # HTML/text email templates
 │   ├── schedule-reminders.ts # Resend scheduled reminders (24h + 1h)
 │   ├── booking-ics.ts        # ICS calendar file generation
 │   ├── booking-token.ts      # HMAC token generation/verification
 │   ├── calendar-utils.ts     # Helpers for extracting data from calendar events
-│   ├── validation.ts         # Input validation (name, email, LinkedIn, agenda)
+│   ├── validation.ts         # Server-side email validation (domain list checks)
+│   ├── validation-client.ts  # Client-safe validation (name, agenda, LinkedIn URL)
 │   └── __tests__/            # 62 tests across 5 test files
 ├── app/
 │   ├── api/calendar/
@@ -130,7 +132,3 @@ Runs 62 tests across 5 test suites covering:
 - **Calendar utilities** — Event data extraction
 - **Reminders** — Scheduling and cancellation logic
 - **Availability** — End-to-end availability endpoint logic
-
-## License
-
-MIT
