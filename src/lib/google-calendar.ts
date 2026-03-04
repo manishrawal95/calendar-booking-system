@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+import { calendar_v3 } from '@googleapis/calendar';
 import { DateTime } from 'luxon';
 import crypto from 'crypto';
 import { getCalendarAuthClient } from './google-auth';
@@ -21,7 +21,7 @@ export function getSlotWindowForType(type: BookingType): { startHour: number; st
 }
 
 function getCalendarClient(auth: any) {
-  return google.calendar({ version: 'v3', auth });
+  return new calendar_v3.Calendar({ auth });
 }
 
 export async function getFreeBusy(calendarId: string, timeMin: Date, timeMax: Date) {

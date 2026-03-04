@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, ArrowLeft, Briefcase, Users, Loader2, Check } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { DateTime } from 'luxon';
-import { isValidName, isValidAgenda, isValidLinkedinUrl } from '@/lib/validation';
+import { isValidName, isValidAgenda, isValidLinkedinUrl } from '@/lib/validation-client';
 
 // Lightweight client-side email format check (full validation with domain lists happens server-side)
 const isValidEmailFormat = (email: string) => {

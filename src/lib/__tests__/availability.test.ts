@@ -1,17 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DateTime } from 'luxon';
 
-// Mock googleapis
+// Mock @googleapis/calendar
 const mockEventsList = vi.fn();
 const mockFreebusyQuery = vi.fn();
-vi.mock('googleapis', () => ({
-  google: {
-    calendar: () => ({
-      events: { list: mockEventsList },
-      freebusy: { query: mockFreebusyQuery },
-    }),
-  },
-}));
+vi.mock('@googleapis/calendar', () => {
+  return {
+    calendar_v3: {
+      Calendar: class {
+        events = { list: mockEventsList, get: vi.fn(), insert: vi.fn(), patch: vi.fn(), delete: vi.fn() };
+        freebusy = { query: mockFreebusyQuery };
+      },
+    },
+  };
+});
 
 vi.mock('@/lib/google-auth', () => ({
   getCalendarAuthClient: () => ({}),

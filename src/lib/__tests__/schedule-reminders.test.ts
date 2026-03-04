@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DateTime } from 'luxon';
 
-// Mock googleapis (needed by google-calendar)
-vi.mock('googleapis', () => ({
-  google: { calendar: () => ({}) },
+// Mock @googleapis/calendar (needed by google-calendar)
+vi.mock('@googleapis/calendar', () => ({
+  calendar_v3: { Calendar: vi.fn().mockImplementation(() => ({})) },
 }));
 
 // Mock google-auth
