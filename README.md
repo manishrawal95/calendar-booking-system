@@ -1,95 +1,115 @@
-# Calendar Booking System
+# justbook
 
-Production booking system with Google Calendar integration, email confirmations, and timezone-aware scheduling. Built with Next.js 14 App Router.
+> **Open-source scheduling that just works. No account. No paywall. No subscription.**
+> Set your availability. Share your link. Let people book time with you — with automatic Google Meet, email reminders, and rescheduling built in.
 
-**[Live demo →](https://mrawal.com/book)**
+[Live Demo →](https://mrawal.com/book)
 
-## Features
+---
 
-- **Two booking types** — 30-minute deep dive and 15-minute quick chat
-- **15-minute slot generation** with configurable buffers and conflict detection
-- **Google Calendar integration** — Creates events with Google Meet links automatically
-- **Email confirmations** via Resend with HTML templates
-- **Scheduled reminders** — 24-hour and 1-hour before meeting, auto-cancelled if booking is cancelled
-- **ICS calendar attachments** — Download .ics file from confirmation email
-- **Secure manage links** — HMAC-signed tokens for rescheduling and cancellation (no auth required)
-- **Rescheduling + cancellation** — Full flow with calendar event updates and email notifications
-- **Input validation** — Name, email (blocks disposable domains), LinkedIn URL, agenda length
-- **Timezone-aware** — All slot generation uses Luxon for correct timezone handling
-- **62 tests** covering slot generation, validation, calendar utilities, reminders, and availability
+## What It Does
 
-## Architecture
+You share a link. Someone picks a time. You both get a calendar invite with a Google Meet link, a confirmation email, and automatic reminders before the meeting.
+
+If they need to reschedule or cancel, they can do that too — no account required, no back-and-forth emails.
+
+That's it.
+
+---
+
+## Why Not Just Use Calendly?
+
+Calendly's free tier locks the features people actually use behind a $20/month paywall.
+
+| Feature | Calendly Free | Calendly Standard ($20/mo) | justbook |
+|---|---|---|---|
+| Google Calendar sync | ✅ | ✅ | ✅ |
+| Google Meet auto-link | ❌ | ✅ | ✅ |
+| Email confirmations | ✅ | ✅ | ✅ |
+| 24h + 1h reminders | ❌ | ✅ | ✅ |
+| Rescheduling flow | ❌ | ✅ | ✅ |
+| Cancellation flow | ❌ | ✅ | ✅ |
+| ICS calendar attachment | ❌ | ✅ | ✅ |
+| Disposable email blocking | ❌ | ❌ | ✅ |
+| No-login manage links | ❌ | ❌ | ✅ |
+| You own your data | ❌ | ❌ | ✅ |
+| Monthly cost | $0 | $20 | **$0 forever** |
+
+---
+
+## Everything Included
+
+**Booking**
+- Two meeting types — 30-minute deep dive and 15-minute quick chat
+- Smart slot generation with buffer time and conflict detection
+- Blocks disposable email addresses at input
+
+**Calendar**
+- Creates Google Calendar events automatically
+- Attaches a Google Meet link to every booking
+- Downloads an `.ics` file so guests can add it to any calendar app
+
+**Emails**
+- Confirmation email sent immediately on booking
+- Reminder emails 24 hours and 1 hour before the meeting
+- Cancellation email if the meeting is cancelled — reminders auto-cancelled too
+
+**Rescheduling & Cancellation**
+- Every confirmation email includes a secure manage link
+- Guests reschedule or cancel without creating an account
+- Links are HMAC-signed — tamper-proof, no auth system needed
+
+**Reliability**
+- 62 tests covering slot generation, validation, reminders, and availability
+- Timezone-aware scheduling using Luxon
+- Full conflict detection via Google Calendar freebusy API
+
+---
+
+## How It Works
 
 ```
-User → /book (select time) → POST /api/calendar/book
-                                  ├→ Google Calendar (create event + Meet link)
-                                  ├→ Resend (confirmation email with ICS)
-                                  └→ Resend (schedule 24h + 1h reminders)
+Guest picks a time → Booking confirmed
+                          ├→ Google Calendar event created (+ Meet link)
+                          ├→ Confirmation email sent (with ICS attachment)
+                          └→ Reminders scheduled (24h + 1h before)
 
-User → /book/manage?token=... → GET /api/calendar/manage (verify HMAC token)
-                                  ├→ Reschedule → PUT /api/calendar/reschedule
-                                  └→ Cancel → DELETE /api/calendar/cancel
-                                                ├→ Google Calendar (delete event)
-                                                ├→ Resend (cancellation email)
-                                                └→ Resend (cancel scheduled reminders)
+Guest clicks manage link → Verified via HMAC token
+                          ├→ Reschedule → new time, updated calendar event, new emails
+                          └→ Cancel → event deleted, cancellation email, reminders cancelled
 ```
 
-## Key Design Decisions
-
-- **Slot generation with conflict detection** — Queries Google Calendar freebusy API, applies buffer time between meetings, respects business hours
-- **HMAC tokens for manage URLs** — Booking recipients get a signed link to manage their booking without needing to log in. Tokens encode the event ID and are verified server-side
-- **Resend `scheduledAt`** — Reminders are scheduled at booking time using Resend's built-in scheduling, avoiding the need for a separate cron job or queue
+---
 
 ## Tech Stack
 
-- [Next.js 14](https://nextjs.org/) (App Router)
-- TypeScript
-- [Google Calendar API](https://developers.google.com/calendar) (@googleapis/calendar + google-auth-library)
-- [Resend](https://resend.com/) (transactional email)
-- [Luxon](https://moment.github.io/luxon/) (timezone-aware date handling)
-- [Vitest](https://vitest.dev/) (testing)
+- **Next.js 14** (App Router)
+- **TypeScript**
+- **Google Calendar API**
+- **Resend** (transactional email + reminder scheduling)
+- **Luxon** (timezone-aware date handling)
+- **Vitest** (62 tests)
 
-## Project Structure
+---
 
-```
-src/
-├── lib/
-│   ├── google-calendar.ts    # Calendar slot generation, availability, event CRUD
-│   ├── google-auth.ts        # Google OAuth + service account auth
-│   ├── booking-email.ts      # HTML/text email templates
-│   ├── schedule-reminders.ts # Resend scheduled reminders (24h + 1h)
-│   ├── booking-ics.ts        # ICS calendar file generation
-│   ├── booking-token.ts      # HMAC token generation/verification
-│   ├── calendar-utils.ts     # Helpers for extracting data from calendar events
-│   ├── validation.ts         # Server-side email validation (domain list checks)
-│   ├── validation-client.ts  # Client-safe validation (name, agenda, LinkedIn URL)
-│   └── __tests__/            # 62 tests across 5 test files
-├── app/
-│   ├── api/calendar/
-│   │   ├── availability/     # GET available slots
-│   │   ├── book/             # POST create booking
-│   │   ├── manage/           # GET verify manage token + booking details
-│   │   │   └── availability/ # GET slots for rescheduling
-│   │   ├── reschedule/       # PUT reschedule booking
-│   │   └── cancel/           # DELETE cancel booking
-│   └── book/
-│       ├── page.tsx          # Booking form UI
-│       ├── manage/page.tsx   # Manage booking UI (reschedule/cancel)
-│       └── layout.tsx        # Booking layout
-└── components/ui/
-    └── BackButton.tsx        # Shared navigation component
-```
-
-## Setup
+## Self-Host in 15 Minutes
 
 ### Prerequisites
 
 - Node.js 18+
 - Google Cloud project with Calendar API enabled
 - Google service account with calendar access
-- [Resend](https://resend.com/) account
+- Free [Resend](https://resend.com) account
 
-### Environment Variables
+### 1. Clone & Install
+
+```bash
+git clone https://github.com/yourusername/justbook.git
+cd justbook
+npm install
+```
+
+### 2. Set Environment Variables
 
 ```env
 # Google Calendar
@@ -112,23 +132,61 @@ BOOKING_SIGNING_SECRET=your-random-hex-string
 NEXT_PUBLIC_BOOKING_TIMEZONE=America/New_York
 ```
 
-### Install & Run
+### 3. Run
 
 ```bash
-npm install
 npm run dev
 ```
 
-## Testing
+### 4. Test
 
 ```bash
 npm test
 ```
 
-Runs 62 tests across 5 test suites covering:
+---
 
-- **Slot generation** — Business hours, buffers, conflict detection
-- **Validation** — Email, name, LinkedIn URL, agenda
-- **Calendar utilities** — Event data extraction
-- **Reminders** — Scheduling and cancellation logic
-- **Availability** — End-to-end availability endpoint logic
+## Project Structure
+
+```
+src/
+├── lib/
+│   ├── google-calendar.ts    # Slot generation, availability, event CRUD
+│   ├── google-auth.ts        # Google OAuth + service account auth
+│   ├── booking-email.ts      # HTML/text email templates
+│   ├── schedule-reminders.ts # Resend scheduled reminders (24h + 1h)
+│   ├── booking-ics.ts        # ICS calendar file generation
+│   ├── booking-token.ts      # HMAC token generation/verification
+│   ├── calendar-utils.ts     # Helpers for extracting calendar event data
+│   ├── validation.ts         # Server-side email validation (disposable domain checks)
+│   ├── validation-client.ts  # Client-safe validation (name, agenda, LinkedIn URL)
+│   └── __tests__/            # 62 tests across 5 test files
+├── app/
+│   ├── api/calendar/
+│   │   ├── availability/     # GET available slots
+│   │   ├── book/             # POST create booking
+│   │   ├── manage/           # GET verify token + booking details
+│   │   │   └── availability/ # GET slots for rescheduling
+│   │   ├── reschedule/       # PUT reschedule booking
+│   │   └── cancel/           # DELETE cancel booking
+│   └── book/
+│       ├── page.tsx          # Booking form UI
+│       ├── manage/page.tsx   # Reschedule/cancel UI
+│       └── layout.tsx        # Booking layout
+└── components/ui/
+    └── BackButton.tsx
+```
+
+---
+
+## Contributing
+
+Found a bug or missing feature? PRs welcome.
+
+Open an issue describing what you hit and what you expected.
+
+---
+
+## License
+
+MIT
